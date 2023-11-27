@@ -55,14 +55,8 @@ int main () {
   write_execute(0x0F, 0x00); // display test register - set to normal operation (0x01)
 
   StartI2C_Trans(SLA);
-
-  //status = TWSR & 0xF8;
-
   write(PWR_MGMT);// address on SLA for Power Management
   write(WAKEUP); // send data to Wake up from sleep mode
-
-  //status = TWSR & 0xF8;
-
   StopI2C_Trans();
 
   //state machine for switch 
@@ -96,7 +90,62 @@ int main () {
     //Serial.println(" ");
 
   StopI2C_Trans();
+/*
+while (1) {
+ _delay_ms(1000);
+  
+  
+  Read_from(SLA,SL_MEMA_YAX_HIGH);
+  
+ // status = TWSR & 0xF8;
 
+  T_val= Read_data(); // read upper value
+ 
+  Read_from(SLA,SL_MEMA_YAX_LOW);
+  T_val = (T_val << 8 )| Read_data(); // append lower value
+  
+  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
+  
+  T_y = T_val;
+
+ _delay_ms(1000);
+  
+  
+  Read_from(SLA,SL_MEMA_XAX_HIGH);
+  
+ // status = TWSR & 0xF8;
+
+  T_val= Read_data(); // read upper value
+ 
+  Read_from(SLA,SL_MEMA_XAX_LOW);
+  T_val = (T_val << 8 )| Read_data(); // append lower value
+  
+  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
+  
+  T_x = T_val;
+   _delay_ms(1000);
+  
+  
+  Read_from(SLA,SL_MEMA_ZAX_HIGH);
+  
+ // status = TWSR & 0xF8;
+
+  T_val= Read_data(); // read upper value
+ 
+  Read_from(SLA,SL_MEMA_ZAX_LOW);
+  T_val = (T_val << 8 )| Read_data(); // append lower value
+  
+  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
+  
+  T_z = T_val;
+  if(T_z < 0){
+    Serial.print("BUZZ");
+  }
+  //Serial.print("Zaxis =  ");
+  //Serial.println(T_x);
+  StopI2C_Trans();
+}
+*/
 }
 
 

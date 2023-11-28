@@ -18,15 +18,10 @@
 #define SL_TEMP_LOW       0x42
 
 
-typedef enum stateType_enum {
-  wait_press, debounce_press, wait_release, debounce_release
-} stateType;
-
-// set pushbutton state to initial position of wait_press
-// make state variable volatile type since it can be changed in the ISR
-// 
-
-volatile stateType pbstate = wait_press;
+//create states
+typedef enum {wait_press, debounce_p, wait_release, debounce_r} button_state;
+//declare the enum state variable
+volatile button_state my_button_state = wait_press;
 int godothing = 0;
 
 int main() {
@@ -34,7 +29,7 @@ int main() {
 Serial.begin(9600); // using serial port to print values from I2C bus
 sei(); 
 initI2C(); 
-initSwitchPD2(); // initialize I2C and set bit rate
+initSwitchPB3(); // initialize I2C and set bit rate
 
 signed int T_val = 0;
 float T_y = 0;	
@@ -60,20 +55,6 @@ StopI2C_Trans();
 
 initPWMTimer3();
 while (1) {
-   switch(pbstate) {
-   case wait_press:
-        break;
-   case debounce_press:
-        delayMs(1);
-        pbstate = wait_release;
-        break;
-    case wait_release:
-        break;
-    case debounce_release:
-        delayMs(1);
-        pbstate = wait_press;
-        break;          
-    }
 
   _delay_ms(1000);
   Read_from(SLA,SL_MEMA_YAX_HIGH);
@@ -119,10 +100,38 @@ while (1) {
   T_z = T_val;
   if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
     int  i = 0;
-    while(godothing == 0){
+    godothing = 1;
+    while(godothing == 1){
+      switch (my_button_state)
+      {
+      case  wait_press:
+        break;
+
+      case  debounce_p:
+        //eventually go to wait_release
+        //need to delay by ~1ms
+        //Serial.print("Pressed");
+        delayMs(1);
+        my_button_state = wait_release;
+        break;
+
+      case  wait_release:
+       //Serial.print("release");
+        break;
+
+      case  debounce_r:
+        //eventually go to wait_release
+        //need to delay by ~1ms
+        //Serial.print("debounce");
+        delayMs(1);
+        my_button_state = wait_press;
+        break;
+      default:
+        break;
+      }
       OCR3A = i;
       delayMs(1);
-      i = i+4;
+      i = i+8;
       if(i == 1024){
         
         i = 0;
@@ -138,24 +147,23 @@ while (1) {
 
 }
 
-ISR(INT2_vect){
-  // if the interrupt was triggered when state was waiting for press then we are going
-  // debounce the press action  so set pbstate to debounce press
-  
-  if( pbstate == wait_press) {
-    pbstate = debounce_press;
+//Interrupt state machine
+ISR(PCINT0_vect){
+  //if pressed go to debounce state
+  if(my_button_state == wait_press){
+      my_button_state = debounce_p;
   }
-  else if (pbstate == wait_release) {
- // else if interrupt was triggered when we were in wait_release, then we are going to 
- // debounce the release action so set the pbstate to debounce release but first
- // check the ledspeed and change it
- if (godothing == 0) {
-    // if the led_speed is fast then change it to slow
-   godothing = 1;
- }
- else {
-   godothing = 0; // else led_speed was slow so change it to fast
- }
- pbstate = debounce_release;
- }  
+  //if its pressed and released change the flip speed
+  else if(my_button_state == wait_release){
+    if (godothing == 1){
+      OCR3A = 0;
+      godothing = 0;
+      Serial.print("xxxxxxxxxxxxxx");
+    }
+    else{
+      godothing = 0;
+      //OCR3A = 0;
+    }
+    my_button_state = debounce_r;
+  }
 }

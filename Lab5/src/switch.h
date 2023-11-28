@@ -1,6 +1,6 @@
 #ifndef SWITCH_H
 #define SWITCH_H
 
-void initSwitchPD2();
+void initSwitchPB3();
 
 #endif

@@ -1,12 +1,12 @@
 #include <Arduino.h>
-#include "spi.h"
+#include "SPI.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
 #define DDR_SPI DDRB // Data Direction Register on ATMEGA2560 for SPI is DDRB
 #define DD_SS DDB0  // SS Chip Select data direction bit B0 of ATMEGA2560 is DDB0
 #define DD_SCK DDB1  // Clock pin connection data direction bit B1 on ATMEGA2560 is DDB1
-#define DD_MOSI DDB2 // MOSI pin datadirection on ATMEGA2560 is DDB0
+#define DD_MOSI DDB2 // MOSI pin datadirection on ATMEGA2560 is DDB2
 #define SPI_PORT PORTB // PortB for SPI on ATMEGA2560 is PORTB
 #define SPI_SS_BIT PORTB0 // Port B register Bit B0 of Chip Select on ATMEGA2560 is PORTB0
 
@@ -28,11 +28,34 @@ void SPI_MASTER_Init() {
 
     }
 
-    void write_execute(unsigned char CMD, unsigned char data) {
-        SPI_PORT &= ~(1 << SPI_SS_BIT);  // enable chip select bit to begin SPI frame
-        SPDR = CMD; // load the CMD address into register
-        wait_for_complete; // wait for flag to raise
-        SPDR = data; // load the data into register
-        wait_for_complete; // wait for flag to raise
-        SPI_PORT |= (1 << SPI_SS_BIT); // disable chip select to end SPI frame
-    }
+void write_execute(unsigned char CMD, unsigned char data) {
+    SPI_PORT &= ~(1 << SPI_SS_BIT);  // enable chip select bit to begin SPI frame
+    SPDR = CMD; // load the CMD address into register
+    wait_for_complete; // wait for flag to raise
+    SPDR = data; // load the data into register
+    wait_for_complete; // wait for flag to raise
+    SPI_PORT |= (1 << SPI_SS_BIT); // disable chip select to end SPI frame
+}
+
+void write_happy_face() {
+
+    write_execute(0x01, 0b00000000); // all LEDS in Row 1 are off
+    write_execute(0x02, 0b00100100); // row 2 LEDS 
+    write_execute(0x03, 0b00100100); // row 3 LEDS
+    write_execute(0x04, 0b00000000); // row 4 LEDS
+    write_execute(0x05, 0b00000000); // row 5 LEDS
+    write_execute(0x06, 0b01000010); // row 6 LEDS
+    write_execute(0x07, 0b00111100); // row 7 LEDS
+    write_execute(0x08, 0b00000000); // row 8 LEDS
+}
+
+void write_sad_face() {
+    write_execute(0x01, 0b00000000); // all LEDS in Row 1 are off
+    write_execute(0x02, 0b00100100); // row 2 LEDS 
+    write_execute(0x03, 0b00100100); // row 3 LEDS
+    write_execute(0x04, 0b00000010); // row 4 LEDS
+    write_execute(0x05, 0b00000000); // row 5 LEDS
+    write_execute(0x06, 0b00111100);
+    write_execute(0x07, 0b01000010);
+    write_execute(0x08, 0b00000000);
+}

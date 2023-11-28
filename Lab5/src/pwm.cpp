@@ -1,4 +1,5 @@
 #include "pwm.h"
+#include "timer.h"
 // Author: 
 //  Alex Romero
 //  Victor Oviedo

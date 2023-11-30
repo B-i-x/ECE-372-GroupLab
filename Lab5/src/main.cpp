@@ -57,65 +57,53 @@ write(WAKEUP); // send data to Wake up from sleep mode
 
 //status = TWSR & 0xF8;
 
-
 StopI2C_Trans();
 
 
 initPWMTimer3();
 while (1) {
-
-  _delay_ms(1000);
+  _delay_ms(100);
   Read_from(SLA,SL_MEMA_YAX_HIGH);
-  
- // status = TWSR & 0xF8;
-
   T_val= Read_data(); // read upper value
- 
   Read_from(SLA,SL_MEMA_YAX_LOW);
   T_val = (T_val << 8 )| Read_data(); // append lower value
-  
-  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
-  
   T_y = T_val;
-
-  
-  
-  Read_from(SLA,SL_MEMA_XAX_HIGH);
-  
+ Read_from(SLA,SL_MEMA_ZAX_HIGH); 
  // status = TWSR & 0xF8;
-
   T_val= Read_data(); // read upper value
- 
-  Read_from(SLA,SL_MEMA_XAX_LOW);
-  T_val = (T_val << 8 )| Read_data(); // append lower value
-  
-  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
-  
-  T_x = T_val;
-  
-  
-  Read_from(SLA,SL_MEMA_ZAX_HIGH);
-  
- // status = TWSR & 0xF8;
-
-  T_val= Read_data(); // read upper value
- 
   Read_from(SLA,SL_MEMA_ZAX_LOW);
   T_val = (T_val << 8)| Read_data(); // append lower value
-  
-  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
-  godothing = 0; 
   T_z = T_val;
-
+  godothing = 0;
   write_happy_face();
   if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
-    int  i = 0;
+    int  i = 1000;
     write_sad_face();
     godothing = 1;
     while(godothing == 1){
+
+  Read_from(SLA,SL_MEMA_YAX_HIGH);
+  T_val= Read_data(); // read upper value
+  Read_from(SLA,SL_MEMA_YAX_LOW);
+  T_val = (T_val << 8 )| Read_data(); // append lower value
+  T_y = T_val;
+ Read_from(SLA,SL_MEMA_ZAX_HIGH); 
+ // status = TWSR & 0xF8;
+  T_val= Read_data(); // read upper value
+  Read_from(SLA,SL_MEMA_ZAX_LOW);
+  T_val = (T_val << 8)| Read_data(); // append lower value
+  T_z = T_val;
+  if((T_z >= 12500) && ((T_y >= 0) && (T_y <= 7000))){
+    write_happy_face();
+  }
+  else{
+    write_sad_face();
+  }
+
       switch (my_button_state)
       {
       case  wait_press:
+
         break;
 
       case  debounce_p:
@@ -131,31 +119,26 @@ while (1) {
         break;
 
       case  debounce_r:
-        //eventually go to wait_release
-        //need to delay by ~1ms
-        //Serial.print("debounce");
         delayMs(1);
         my_button_state = wait_press;
         break;
       default:
         break;
       }
-      OCR3A = i;
-      delayMs(1);
-      i = i+8;
-      if(i == 1024){
-        
-        i = 0;
-      }
       Serial.print(godothing);
+      changer(i);
+      i = i+100;
+      if(i > 4000){
+        i = 1000;
+      }
     }
+    turnOff();
   }
   Serial.print("Zaxis =  ");
   Serial.println(T_y);
   StopI2C_Trans();
 }
-  return 0;
-
+return 0;
 }
 
 //Interrupt state machine
@@ -167,9 +150,8 @@ ISR(PCINT0_vect){
   //if its pressed and released change the flip speed
   else if(my_button_state == wait_release){
     if (godothing == 1){
-      OCR3A = 0;
+      
       godothing = 0;
-      write_happy_face();
     }
     else{
       godothing = 0;

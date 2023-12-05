@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <avr/io.h>
+#include <Wire.h>
+
 
 #include "pwm.h"
 #include "timer.h"
@@ -115,7 +117,7 @@ int main () {
       //write to screen the on state
       //On animation
       write_Image_Scroll_Up_In(oImage, 40);
-      write_Image_Scroll_Up_In(nImage, 35);    
+       write_Image_Scroll_Up_In(nImage, 35);    
       ////////////////////////////////////////
 
       application_state = wait_press;
@@ -132,10 +134,10 @@ int main () {
       ////////////////////////////////////////
       //write to screen the off state
       ////////////////////////////////////////
-      //Off animation
+      // //Off animation
       write_Image_Scroll_Up_In(oImage, 40);
-      write_Image_Scroll_Up_In(fImage, 40);
-      write_Image_Scroll_Up_In(fImage, 40);
+       write_Image_Scroll_Up_In(fImage, 40);
+      // write_Image_Scroll_Up_In(fImage, 40);
       application_state = wait_press;
       break;
     

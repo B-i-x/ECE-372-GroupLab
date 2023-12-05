@@ -31,13 +31,13 @@ Serial.begin(9600); // using serial port to print values from I2C bus
 sei(); 
 initI2C(); 
 initSwitchPB3(); // initialize I2C and set bit rate
-  SPI_MASTER_Init(); // initialize SPI module and set the data rate
-  _delay_ms(100);  // delay for 1 s to display "HI"
-  // initialize 8 x 8 LED array (info from MAX7219 datasheet)
-  write_execute(0x0A, 0x03);  // brightness control
-  write_execute(0x0B, 0x07); // scanning all rows and columns
-  write_execute(0x0C, 0x01); // set shutdown register to normal operation (0x01)
-  write_execute(0x0F, 0x00); // display test register - set to normal operation (0x01)
+SPI_MASTER_Init(); // initialize SPI module and set the data rate
+_delay_ms(100);  // delay for 1 s to display "HI"
+// initialize 8 x 8 LED array (info from MAX7219 datasheet)
+write_execute(0x0A, 0x03);  // brightness control
+write_execute(0x0B, 0x07); // scanning all rows and columns
+write_execute(0x0C, 0x01); // set shutdown register to normal operation (0x01)
+write_execute(0x0F, 0x00); // display test register - set to normal operation (0x01)
 
 signed int T_val = 0;
 float T_y = 0;	
@@ -48,14 +48,9 @@ float T_x = 0;
   
 
 StartI2C_Trans(SLA);
-
 //status = TWSR & 0xF8;
-
 write(PWR_MGMT);// address on SLA for Power Management
 write(WAKEUP); // send data to Wake up from sleep mode
-
-
-//status = TWSR & 0xF8;
 
 StopI2C_Trans();
 
@@ -65,8 +60,10 @@ int imu_at_zero = 1;
 
 initPWMTimer3();
 while (1) {
+
   delayMs(50);
   Serial.println(place_state);
+
   switch (place_state) {
     case read_data:
       _delay_ms(100);

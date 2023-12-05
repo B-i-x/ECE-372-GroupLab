@@ -20,9 +20,9 @@
 
 
 //create states
-typedef enum {wait_press, debounce_p, wait_release, debounce_r} button_state;
+typedef enum {read_data, buzz, turn_off_buzzer} state;
 //declare the enum state variable
-volatile button_state my_button_state = wait_press;
+volatile state place_state = read_data;
 int godothing = 0;
 
 int main() {
@@ -59,104 +59,103 @@ write(WAKEUP); // send data to Wake up from sleep mode
 
 StopI2C_Trans();
 
+int i = 1000;
+
+int imu_at_zero = 1;
 
 initPWMTimer3();
 while (1) {
-  _delay_ms(100);
-  Read_from(SLA,SL_MEMA_YAX_HIGH);
-  T_val= Read_data(); // read upper value
-  Read_from(SLA,SL_MEMA_YAX_LOW);
-  T_val = (T_val << 8 )| Read_data(); // append lower value
-  T_y = T_val;
- Read_from(SLA,SL_MEMA_ZAX_HIGH); 
- // status = TWSR & 0xF8;
-  T_val= Read_data(); // read upper value
-  Read_from(SLA,SL_MEMA_ZAX_LOW);
-  T_val = (T_val << 8)| Read_data(); // append lower value
-  T_z = T_val;
-  godothing = 0;
-  write_happy_face();
-  if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
-    int  i = 1000;
-    write_sad_face();
-    godothing = 1;
-    while(godothing == 1){
+  delayMs(50);
+  Serial.println(place_state);
+  switch (place_state) {
+    case read_data:
+      _delay_ms(100);
+      Read_from(SLA,SL_MEMA_YAX_HIGH);
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_YAX_LOW);
+      T_val = (T_val << 8 )| Read_data(); // append lower value
+      T_y = T_val;
+      Read_from(SLA,SL_MEMA_ZAX_HIGH); 
+      // status = TWSR & 0xF8;
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_ZAX_LOW);
+      T_val = (T_val << 8)| Read_data(); // append lower value
+      T_z = T_val;
+      StopI2C_Trans();
+      Serial.print(T_z);
+      Serial.print(",");
+      Serial.print(T_y);
+      Serial.println();
 
-  Read_from(SLA,SL_MEMA_YAX_HIGH);
-  T_val= Read_data(); // read upper value
-  Read_from(SLA,SL_MEMA_YAX_LOW);
-  T_val = (T_val << 8 )| Read_data(); // append lower value
-  T_y = T_val;
- Read_from(SLA,SL_MEMA_ZAX_HIGH); 
- // status = TWSR & 0xF8;
-  T_val= Read_data(); // read upper value
-  Read_from(SLA,SL_MEMA_ZAX_LOW);
-  T_val = (T_val << 8)| Read_data(); // append lower value
-  T_z = T_val;
-  if((T_z >= 12500) && ((T_y >= 0) && (T_y <= 7000))){
-    write_happy_face();
-  }
-  else{
-    write_sad_face();
-  }
+      
 
-      switch (my_button_state)
-      {
-      case  wait_press:
+      if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
+        write_sad_face();
 
-        break;
+        if (imu_at_zero) { 
+          place_state = buzz; 
+          imu_at_zero = 0;
+        }
+        else {
+          place_state = read_data;
+        }
 
-      case  debounce_p:
-        //eventually go to wait_release
-        //need to delay by ~1ms
-        //Serial.print("Pressed");
-        delayMs(1);
-        my_button_state = wait_release;
-        break;
-
-      case  wait_release:
-       //Serial.print("release");
-        break;
-
-      case  debounce_r:
-        delayMs(1);
-        my_button_state = wait_press;
-        break;
-      default:
-        break;
       }
-      Serial.print(godothing);
+      else{
+        write_happy_face();
+      }
+
+      break;
+
+    case buzz:
       changer(i);
-      i = i+100;
+      i = i+1000;
       if(i > 4000){
         i = 1000;
       }
+
+      _delay_ms(100);
+      Read_from(SLA,SL_MEMA_YAX_HIGH);
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_YAX_LOW);
+      T_val = (T_val << 8 )| Read_data(); // append lower value
+      T_y = T_val;
+      Read_from(SLA,SL_MEMA_ZAX_HIGH); 
+      // status = TWSR & 0xF8;
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_ZAX_LOW);
+      T_val = (T_val << 8)| Read_data(); // append lower value
+      T_z = T_val;
+      godothing = 0;
+      StopI2C_Trans();
+
+      if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
+        write_sad_face();    
+      }
+      else{
+        write_happy_face();
+      }
+
+
+
+      break;
+
+    case (turn_off_buzzer):
+      turnOff();
+      place_state = read_data;
+      break;
+
     }
-    turnOff();
+  
   }
-  Serial.print("Zaxis =  ");
-  Serial.println(T_y);
-  StopI2C_Trans();
-}
 return 0;
 }
 
 //Interrupt state machine
 ISR(PCINT0_vect){
   //if pressed go to debounce state
-  if(my_button_state == wait_press){
-      my_button_state = debounce_p;
+  if(place_state == buzz){
+      place_state = turn_off_buzzer;
   }
-  //if its pressed and released change the flip speed
-  else if(my_button_state == wait_release){
-    if (godothing == 1){
-      
-      godothing = 0;
-    }
-    else{
-      godothing = 0;
-      //OCR3A = 0;
-    }
-    my_button_state = debounce_r;
-  }
+  
 }

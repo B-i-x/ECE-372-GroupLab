@@ -71,9 +71,9 @@ void initPWMTimer3()  {
 
 
 void changeDutyCycle(double dutycycle1){
-  OCR3A = int(dutycycle1 * (1024));
-
+  OCR3A = int(dutycycle1 * (320000));
 }
+
 
 void analyzeADC() {
 

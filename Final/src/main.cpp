@@ -9,6 +9,12 @@
 int main () {
   sei();
 
+  initTimer0(); //milliseconds
+
   initPWMTimer3(); //pwm 2
 
+  while (1) {
+    changeDutyCycle(0.50);//turn off motor
+    delayMs(10);
+  }
 }

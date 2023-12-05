@@ -7,5 +7,5 @@ void changeDutyCycle(double dutycycle1);
 
 void analyzeADC();
 
-void setServoAngle(int angle);
+void letBallThrough();
 #endif

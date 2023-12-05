@@ -15,14 +15,22 @@
 /*
  * Initializes pull-up resistor on PB3 and sets it into output mode
  */
-void initSwitchPB3(){
-    DDRB |= (1 << DDB3); //set direction for output
+void initRelaySwitch(){
+    DDRD &= ~(1<< DDD0); // set direction for input
+    PORTD |= (1 << PORTD0);  // enable the pullup resistor for stable input
+
+    EICRA |= ((1 << ISC01) | (1 << ISC00)); // set INT0 to trigger on rising edge
+    
+    EIMSK |= (1 << INT0); // enable INT0
 }
 
-void turnOnSwitchPB3(){
-    PORTB |= (1 << PORTB3); //set output to high
+void initServoSwitch(){
+    DDRD &= ~(1<< DDD1); // set direction for input
+    PORTD |= (1 << PORTD1);  // enable the pullup resistor for stable input
+
+
+    EICRA |= ((1 << ISC11) | (1 << ISC10)); // set INT0 to trigger on rising edge
+    
+    EIMSK |= (1 << INT1); // enable INT0
 }
 
-void turnOffSwitchPB3(){
-    PORTB &= ~(1 << PORTB3); //set output to low
-}

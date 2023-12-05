@@ -14,7 +14,7 @@ int main () {
   initPWMTimer3(); //pwm 2
 
   while (1) {
-    changeDutyCycle(0.50);//turn off motor
-    delayMs(10);
+    
+
   }
 }

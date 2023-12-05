@@ -1,4 +1,5 @@
 #include "pwm.h"
+#include "timer.h"
 // Author: 
 //  Alex Romero
 //  Victor Oviedo
@@ -50,9 +51,9 @@ void initPWMTimer3()  {
   // TOP value = 0x3FF = 1023 
   // PWM frequency from calculation = 15.625 kHz
 
-  ICR3 = 65535;
+  ICR3 = 39999;
 
-  // set prescalar CSBits to prescaler of 1
+  // set prescalar CSBits to prescaler of 8
   //CS10 =1
   //CS11 =0
   //CS12 =0
@@ -66,14 +67,20 @@ void initPWMTimer3()  {
   //  calculate OCR1A value => OCR1A = duty cycle(fractional number) * (1 + TOP) 
   // we want a duty cycle = 60%
   // OCR1A = 0.60 * 1024
-  OCR3A =  0;
+  OCR3A =  3000;
 }
-
 
 void changeDutyCycle(double dutycycle1){
-  OCR3A = int(dutycycle1 * (65535));
+  OCR3A = int(dutycycle1 * (39999));
 }
 
+void letBallThrough() {
+  for (double i = 0; i < 0.4; i = i + 0.01) {
+      // setServoAngle(i);
+      changeDutyCycle(i);
+      delayMs(50);
+    }
+}
 
 // void analyzeADC() {
 

@@ -5,7 +5,7 @@ void initPWMTimer3();
 
 void changeDutyCycle(double dutycycle1);
 
-void analyzeADC();
-
 void letBallThrough();
+
+void setServoAngle(int angle);
 #endif

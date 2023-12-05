@@ -47,10 +47,7 @@ void initPWMTimer3()  {
   // PWM frequency calculation for FAST PWM mode on page 148 of datasheet
   //frequency of PWM = (F_clk)/((Prescaler)* (1 +TOP))
   // frequency of PWM = 16Mhz
-  // Prescaler = 1
-  // TOP value = 0x3FF = 1023 
-  // PWM frequency from calculation = 15.625 kHz
-
+ 
   ICR3 = 39999;
 
   // set prescalar CSBits to prescaler of 8
@@ -66,22 +63,57 @@ void initPWMTimer3()  {
   // the top value is (1 + ICR1) = 1024
   //  calculate OCR1A value => OCR1A = duty cycle(fractional number) * (1 + TOP) 
   // we want a duty cycle = 60%
-  // OCR1A = 0.60 * 1024
-  OCR3A =  3000;
+  // OCR1A = 0.60 * 39999
+  OCR3A =  8000;
 }
 
 void changeDutyCycle(double dutycycle1){
   OCR3A = int(dutycycle1 * (39999));
 }
 
-void letBallThrough() {
-  for (double i = 0; i < 0.4; i = i + 0.01) {
-      // setServoAngle(i);
-      changeDutyCycle(i);
-      delayMs(50);
+
+
+void setServoAngle(int angle) {
+    // Check if the angle is within the valid range
+    if (angle < 0 || angle > 180) {
+        return; // Exit the function if the angle is not valid
     }
+
+    // Map the angle to the corresponding OCR3A value
+    // Pulse width ranges from 1ms (1000us) to 2ms (2000us)
+    // OCR3A value for 1ms pulse width at 16MHz with prescaler of 8 and TOP 39999
+    int ocrValueFor1ms = 2000; // Adjust this value based on your PWM frequency and prescaler settings
+
+    // OCR3A value for 2ms pulse width
+    int ocrValueFor2ms = 4000; // Adjust this value based on your PWM frequency and prescaler settings
+
+    // Calculate the OCR3A value for the given angle
+    int ocrValue = ocrValueFor1ms + (angle / 180) * (ocrValueFor2ms - ocrValueFor1ms);
+
+    // Set OCR3A to the calculated value
+    OCR3A = ocrValue;
 }
 
+void letBallThrough() {
+  // for (double i = 0; i < 0.5; i = i + 0.01) {
+  //     // setServoAngle(i);
+  //     changeDutyCycle(i);
+  //     delayMs(50);
+  //   }
+
+  setServoAngle(0); 
+
+  delayMs(100);  
+  
+  setServoAngle(180); 
+
+  delayMs(100); 
+
+  setServoAngle(0); 
+ 
+  delayMs(100); 
+
+}
 // void analyzeADC() {
 
 //   while(! ((1 << 4) & ADCSRA)) {//waiting for ADC to be ready

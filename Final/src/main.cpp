@@ -31,18 +31,19 @@ int main () {
   initTimer0(); //milliseconds
 
   initPWMTimer3(); //pwm 2
+  setServoAngle(0);
 
   initRelaySwitch(); //servo out, digital pin 21
 
   initServoSwitch(); //relay button, digital pin 20
 
-  initPortB6(); //relay out
+  initPortB6(); //relay out digital pin 12
   turnOffMotor();
 
 
   while (1)
   {
-    Serial.println(application_state);
+    // Serial.println(application_state);
 
     switch (application_state)
     {

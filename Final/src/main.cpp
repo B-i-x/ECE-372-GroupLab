@@ -11,6 +11,10 @@
 
 #define LOOP_DELAY_MS 50
 
+#define SLA 0x60
+#define SENSOR_DATA_REG 0x08
+#define SENSOR_CONFIGURATION 0x03
+
 typedef enum stateType_enum {
   wait_press, 
   activate_servo, 

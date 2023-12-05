@@ -29,7 +29,7 @@ void initServoSwitch(){
     PORTD |= (1 << PORTD1);  // enable the pullup resistor for stable input
 
 
-    EICRA |= ((1 << ISC11) | (1 << ISC10)); // set INT0 to trigger on rising edge
+    EICRA |= ((1 << ISC11) | (1 << ISC10)); // set INT1 to trigger on rising edge
     
     EIMSK |= (1 << INT1); // enable INT0
 }

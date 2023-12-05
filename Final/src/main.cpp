@@ -2,7 +2,6 @@
 #include <avr/io.h>
 
 #include "pwm.h"
-#include "adc.h"
 #include "timer.h"
 #include "switch.h"
 #include "relay.h"
@@ -20,7 +19,7 @@ typedef enum stateType_enum {
   write_off_to_screen,
 } stateType;
 
-stateType application_state = wait_press;
+volatile stateType application_state = wait_press;
 
 volatile int relay_state = 0; //0 means that the relay is off, 1 means that the relay is on
 
@@ -43,13 +42,14 @@ int main () {
 
   while (1)
   {
+    Serial.println(application_state);
+
     switch (application_state)
     {
     case wait_press:
       ////////////////////////////////////////
       //write to screen the waiting state
       ////////////////////////////////////////
-      // Serial.println(relay_state);
 
       break;
     

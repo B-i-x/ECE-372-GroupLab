@@ -1,4 +1,5 @@
 #include "pwm.h"
+#include "timer.h"
 // Author: 
 //  Alex Romero
 //  Victor Oviedo
@@ -22,35 +23,26 @@
 void initPWMTimer3()  {
 
   //set header pin  to output
-  DDRE |= (1 << DDE3);
+  DDRE |= (1 << DDE4);
   // set non-inverting mode - output starts high and then is low, 
   //COM1A0 bit = 0
   //COM1A1 bit =1
-  TCCR3A |= (1 << COM3A1);
-  TCCR3A &= ~(1 << COM3A0);
+  TCCR3A |= (1 << COM3B1);
+  TCCR3A &= ~(1 << COM3B0);
 
   //  Use fast PWM mode 10 bit, top value is determined by Table 17-2 of 0x3FF (1023) 
   //  which determines the PWM frequency.
-  // for Fast PWM 10bit mode # 14:
-  // WGM10 = 0
+  // for Fast PWM 10bit mode # 15:
+  // WGM10 = 1
   // WGM11 = 1
   // WGM12 = 1
   // WGM13 = 1
-  TCCR3A &= ~(1 << WGM30); 
+  TCCR3A |= (1 << WGM30); 
 
   TCCR3A |= (1 << WGM31);
 
   TCCR3B |= (1 << WGM32);
   TCCR3B |= (1 << WGM33);
-
-  // PWM frequency calculation for FAST PWM mode on page 148 of datasheet
-  //frequency of PWM = (F_clk)/((Prescaler)* (1 +TOP))
-  // frequency of PWM = 16Mhz
-  // Prescaler = 1
-  // TOP value = 0x3FF = 1023 
-  // PWM frequency from calculation = 15.625 kHz
-
-  ICR3 = 1023;
 
   // set prescalar CSBits to prescaler of 1
   //CS10 =1
@@ -66,7 +58,17 @@ void initPWMTimer3()  {
   //  calculate OCR1A value => OCR1A = duty cycle(fractional number) * (1 + TOP) 
   // we want a duty cycle = 60%
   // OCR1A = 0.60 * 1024
-  OCR3A =  0;
 }
 
+void changer(int i){
+  TCCR3B |= (1 << CS31);
+  TCCR3B &= ~((1 << CS30)  | (1 << CS32));
+  OCR3A = 1600000 / i;
+  OCR3B = OCR3A * .5;
+}
+
+void turnOff(){
+  TCCR3B &= ~(1 << CS31);
+  TCCR3B &= ~((1 << CS30)  | (1 << CS32));
+}
 

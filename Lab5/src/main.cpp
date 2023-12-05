@@ -1,14 +1,10 @@
-#include <Arduino.h>
-
-#include <avr/interrupt.h>
-#include <avr/io.h>
-
-#include "SPI.h"
 #include "i2c.h"
-#include "switch.h"
-#include "timer.h"
-#include "spi.h"
 #include "pwm.h"
+#include "timer.h"
+#include "switch.h"
+#include "spi.h"
+#include <avr/io.h>
+#include "Arduino.h"
 
 #define SLA 0x68  // MPU_6050 address with PIN AD0 grounded
 #define PWR_MGMT  0x6B
@@ -23,30 +19,19 @@
 #define SL_TEMP_LOW       0x42
 
 
-typedef enum stateEnum {
-  wait_press, 
-  debounce_press, 
-  wait_release, 
-  debounce_release, 
-  smile, 
-  frown_w_noise, 
-  wait_smile, 
-  wait_frown
-} stateType;
+//create states
+typedef enum {read_data, buzz, turn_off_buzzer} state;
+//declare the enum state variable
+volatile state place_state = read_data;
+int godothing = 0;
 
-volatile stateType lightState;
-volatile stateType debounceState;
-bool alarm = false;
+int main() {
 
-int main () {
-  Serial.begin(9600); // using serial port to print values from I2C bus
-
-  sei();
-
-  initI2C();  // initialize I2C and set bit rate
-
+Serial.begin(9600); // using serial port to print values from I2C bus
+sei(); 
+initI2C(); 
+initSwitchPB3(); // initialize I2C and set bit rate
   SPI_MASTER_Init(); // initialize SPI module and set the data rate
-
   _delay_ms(100);  // delay for 1 s to display "HI"
   // initialize 8 x 8 LED array (info from MAX7219 datasheet)
   write_execute(0x0A, 0x03);  // brightness control
@@ -54,107 +39,123 @@ int main () {
   write_execute(0x0C, 0x01); // set shutdown register to normal operation (0x01)
   write_execute(0x0F, 0x00); // display test register - set to normal operation (0x01)
 
-  StartI2C_Trans(SLA);
-  write(PWR_MGMT);// address on SLA for Power Management
-  write(WAKEUP); // send data to Wake up from sleep mode
-  StopI2C_Trans();
+signed int T_val = 0;
+float T_y = 0;	
+float T_z = 0;	
+float T_x = 0;	
+//char status;
 
-  //state machine for switch 
-  switch (debounceState){
-    case wait_press:
-    Serial.print("wait press");
-    break;
+  
 
-    case debounce_press:
-    delayMs(1);
-    Serial.print("debounce press");
-    debounceState = wait_release;
-    break;
+StartI2C_Trans(SLA);
 
-    case wait_release:
-    Serial.print("wait release");
-    break;
+//status = TWSR & 0xF8;
 
-    case debounce_release:
-    delayMs(1);
-    Serial.print("debounce release");
-    alarm = false;
-    debounceState = wait_press;
-    break;
-  }
+write(PWR_MGMT);// address on SLA for Power Management
+write(WAKEUP); // send data to Wake up from sleep mode
 
-    //Serial.print("Pitch = ");
-    //Serial.println(pitch);
-    //Serial.print("Yaw = ");
-    //Serial.println(yaw);
-    //Serial.println(" ");
 
-  StopI2C_Trans();
-/*
+//status = TWSR & 0xF8;
+
+StopI2C_Trans();
+
+int i = 1000;
+
+int imu_at_zero = 1;
+
+initPWMTimer3();
 while (1) {
- _delay_ms(1000);
-  
-  
-  Read_from(SLA,SL_MEMA_YAX_HIGH);
-  
- // status = TWSR & 0xF8;
+  delayMs(50);
+  Serial.println(place_state);
+  switch (place_state) {
+    case read_data:
+      _delay_ms(100);
+      Read_from(SLA,SL_MEMA_YAX_HIGH);
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_YAX_LOW);
+      T_val = (T_val << 8 )| Read_data(); // append lower value
+      T_y = T_val;
+      Read_from(SLA,SL_MEMA_ZAX_HIGH); 
+      // status = TWSR & 0xF8;
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_ZAX_LOW);
+      T_val = (T_val << 8)| Read_data(); // append lower value
+      T_z = T_val;
+      StopI2C_Trans();
+      Serial.print(T_z);
+      Serial.print(",");
+      Serial.print(T_y);
+      Serial.println();
 
-  T_val= Read_data(); // read upper value
- 
-  Read_from(SLA,SL_MEMA_YAX_LOW);
-  T_val = (T_val << 8 )| Read_data(); // append lower value
-  
-  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
-  
-  T_y = T_val;
+      
 
- _delay_ms(1000);
-  
-  
-  Read_from(SLA,SL_MEMA_XAX_HIGH);
-  
- // status = TWSR & 0xF8;
+      if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
+        write_sad_face();
 
-  T_val= Read_data(); // read upper value
- 
-  Read_from(SLA,SL_MEMA_XAX_LOW);
-  T_val = (T_val << 8 )| Read_data(); // append lower value
-  
-  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
-  
-  T_x = T_val;
-   _delay_ms(1000);
-  
-  
-  Read_from(SLA,SL_MEMA_ZAX_HIGH);
-  
- // status = TWSR & 0xF8;
+        if (imu_at_zero) { 
+          place_state = buzz; 
+          imu_at_zero = 0;
+        }
+        else {
+          place_state = read_data;
+        }
 
-  T_val= Read_data(); // read upper value
- 
-  Read_from(SLA,SL_MEMA_ZAX_LOW);
-  T_val = (T_val << 8 )| Read_data(); // append lower value
+      }
+      else{
+        write_happy_face();
+      }
+
+      break;
+
+    case buzz:
+      changer(i);
+      i = i+1000;
+      if(i > 4000){
+        i = 1000;
+      }
+
+      _delay_ms(100);
+      Read_from(SLA,SL_MEMA_YAX_HIGH);
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_YAX_LOW);
+      T_val = (T_val << 8 )| Read_data(); // append lower value
+      T_y = T_val;
+      Read_from(SLA,SL_MEMA_ZAX_HIGH); 
+      // status = TWSR & 0xF8;
+      T_val= Read_data(); // read upper value
+      Read_from(SLA,SL_MEMA_ZAX_LOW);
+      T_val = (T_val << 8)| Read_data(); // append lower value
+      T_z = T_val;
+      godothing = 0;
+      StopI2C_Trans();
+
+      if((T_z < 12500) || ((T_y < 0) || (T_y > 7000))){
+        write_sad_face();    
+      }
+      else{
+        write_happy_face();
+      }
+
+
+
+      break;
+
+    case (turn_off_buzzer):
+      turnOff();
+      place_state = read_data;
+      break;
+
+    }
   
-  //Temperature in degrees C = (TEMP_OUT Register Value as a signed quantity)/340 + 36.53
-  
-  T_z = T_val;
-  if(T_z < 0){
-    Serial.print("BUZZ");
   }
-  //Serial.print("Zaxis =  ");
-  //Serial.println(T_x);
-  StopI2C_Trans();
-}
-*/
+return 0;
 }
 
-
+//Interrupt state machine
 ISR(PCINT0_vect){
-  if ((debounceState == wait_press)){
-    debounceState = debounce_press;
+  //if pressed go to debounce state
+  if(place_state == buzz){
+      place_state = turn_off_buzzer;
   }
-  else if (debounceState == wait_release){
-    debounceState = debounce_release;
-  }
-
+  
 }

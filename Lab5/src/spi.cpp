@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "SPI.h"
+#include "spi.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 

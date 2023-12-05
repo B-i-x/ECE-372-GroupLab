@@ -50,7 +50,7 @@ void initPWMTimer3()  {
   // TOP value = 0x3FF = 1023 
   // PWM frequency from calculation = 15.625 kHz
 
-  ICR3 = 320000;
+  ICR3 = 65535;
 
   // set prescalar CSBits to prescaler of 1
   //CS10 =1
@@ -71,30 +71,30 @@ void initPWMTimer3()  {
 
 
 void changeDutyCycle(double dutycycle1){
-  OCR3A = int(dutycycle1 * (320000));
+  OCR3A = int(dutycycle1 * (65535));
 }
 
 
-void analyzeADC() {
+// void analyzeADC() {
 
-  while(! ((1 << 4) & ADCSRA)) {//waiting for ADC to be ready
-  }
+//   while(! ((1 << 4) & ADCSRA)) {//waiting for ADC to be ready
+//   }
 
-  unsigned int adcResult = ADCL; //getting adc result p1
-  adcResult += ((unsigned int) ADCH) << 8;  //getting adc result p2
+//   unsigned int adcResult = ADCL; //getting adc result p1
+//   adcResult += ((unsigned int) ADCH) << 8;  //getting adc result p2
 
-  double percentage = adcResult / 1024.0; //getting the adc percentage
-  double dc1, dc2;
+//   double percentage = adcResult / 1024.0; //getting the adc percentage
+//   double dc1, dc2;
 
-  if (percentage < 0.5) {
-    dc1 = 0.0;
-    dc2 = (percentage * 2.0);
-  }
-  else {
-    dc1 = ((percentage - 0.5) * 2.0);
-    dc2 = 1.0; //for some reason, putting this at 100 makes it go to 0
-  }
+//   if (percentage < 0.5) {
+//     dc1 = 0.0;
+//     dc2 = (percentage * 2.0);
+//   }
+//   else {
+//     dc1 = ((percentage - 0.5) * 2.0);
+//     dc2 = 1.0; //for some reason, putting this at 100 makes it go to 0
+//   }
 
-  // changeDutyCycle(dc1, dc2);
-  return;
-}
+//   // changeDutyCycle(dc1, dc2);
+//   return;
+// }

@@ -4,6 +4,7 @@
 #include "pwm.h"
 #include "adc.h"
 #include "timer.h"
+#include "switch.h"
 
 // put function declarations here:
 int main () {
@@ -13,8 +14,14 @@ int main () {
 
   initPWMTimer3(); //pwm 2
 
+  initSwitchPB3(); //switch
+
   while (1) {
     
+    turnOffSwitchPB3();
 
+    delayMs(1000);
+
+    turnOnSwitchPB3();
   }
 }

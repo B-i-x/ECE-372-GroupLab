@@ -13,6 +13,12 @@
 
 #define wait_for_complete while(!(SPSR & (1 << SPIF)));
 
+uint64_t oImage = 0x00003C4242423C00;
+uint64_t nImage = 0x00007E20100C7E00;
+uint64_t fImage = 0x00007E4848484000;
+uint64_t idleImage = 0x40403C02023C4040;
+uint64_t pImage = 0x00007E4848300000;
+uint64_t eImage = 0x00007E4A4A4A4200;
 
 void SPI_MASTER_Init() {
     // set MOSI,SCK,and SS direction to outputs
@@ -140,7 +146,7 @@ void write_Image_Scroll_Up_Inf(uint64_t hexValue, int scroll) {
     scroll++; // Increment the scroll count
 
     // Introduce a small delay if needed to control the speed
-    delayMs(50); // Adjust the delay time as needed
+    delayMs(30); // Adjust the delay time as needed
     
 }
 
@@ -158,4 +164,26 @@ void write_Image_Scroll_In(uint64_t hexValue) {
     }
 }
 
+void write_ON_to_screen() {
+    write_Image_Scroll_Up_In(oImage, 40);
+    write_Image_Scroll_Up_In(nImage, 40);    
+}
+
+void write_waveform_to_screen(int scroll_counter) {
+    write_Image_Scroll_Up_Inf(idleImage, scroll_counter);
+
+}
+
+void write_OPEN_screen() {
+    write_Image_Scroll_Up_In(oImage, 40);
+    write_Image_Scroll_Up_In(pImage, 40);
+    write_Image_Scroll_Up_In(eImage, 40);
+    write_Image_Scroll_Up_In(nImage, 40);
+}
+
+void write_OFF_screen() {
+    write_Image_Scroll_Up_In(oImage, 40);
+    write_Image_Scroll_Up_In(fImage, 40);
+    write_Image_Scroll_Up_In(fImage, 40);
+}
 

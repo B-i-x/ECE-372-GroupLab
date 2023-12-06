@@ -11,4 +11,9 @@ void write_Image_Scroll_Up_Inf(uint64_t hexValue, int scroll);
 void write_Image_Scroll_In(uint64_t hexValue);
 void write_Image_Scroll_Left(uint64_t hexValue);
 void write_Image_Scroll_Up_In(uint64_t hexValue, int delay);
+
+void write_ON_to_screen();
+void write_waveform_to_screen(int scroll_counter);
+void write_OPEN_screen();
+void write_OFF_screen();
 #endif

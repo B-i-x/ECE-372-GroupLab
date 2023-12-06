@@ -103,15 +103,15 @@ void letBallThrough() {
 
   setServoAngle(0); 
 
-  delayMs(100);  
+  delayMs(50);  
   
   setServoAngle(180); 
 
-  delayMs(100); 
+  delayMs(300); 
 
   setServoAngle(0); 
  
-  delayMs(100); 
+  delayMs(50); 
 
 }
 // void analyzeADC() {

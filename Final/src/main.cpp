@@ -10,7 +10,10 @@
 #include "spi.h"
 #include "i2c.h"
 
-#define LOOP_DELAY_MS 100
+#define LOOP_DELAY_MS 10
+
+#define BALL_MAX_CUTOFF_DISTANCE_VALUE 200
+#define BALL_MIN_CUTOFF_DISTANCE_VALUE 11
 
 #define SLA 0x60
 #define SENSOR_DATA_REG 0x08
@@ -33,7 +36,7 @@ volatile int relay_state = 0; //0 means that the relay is off, 1 means that the 
 
 int scroll_counter = 0;
 
-int data;
+int sensor_distance;
 
 int main () {
   Serial.begin(9600);
@@ -46,49 +49,19 @@ int main () {
 
   initRelaySwitch(); //servo out, digital pin 21
 
-  initServoSwitch(); //relay button, digital pin 20
-
   initPortB6(); //relay out digital pin 12
   turnOffMotor();
 
+
   SPI_MASTER_Init(); // initialize SPI module and set the data rate
-  delayMs(100);  // delay for 1 s to display "HI"
   // initialize 8 x 8 LED array (info from MAX7219 datasheet)
   write_execute(0x0A, 0x03);  // brightness control
   write_execute(0x0B, 0x07); // scanning all rows and columns
   write_execute(0x0C, 0x01); // set shutdown register to normal operation (0x01)
   write_execute(0x0F, 0x00);
 
-  uint64_t oImage = 0x00003C4242423C00;
-  uint64_t nImage = 0x00007E20100C7E00;
-  //uint64_t uImage = 0x00003E4040403E00;
-  uint64_t fImage = 0x00007E4848484000;
-  uint64_t idleImage = 0x40403C02023C4040;
-  uint64_t pImage = 0x00007E4848300000;
-  uint64_t eImage = 0x00007E4A4A4A4200;
-  int count = 0;
+
   Wire.begin();
-  for (byte i = 1; i < 120; i++)
-  {
-    Wire.beginTransmission (i);
-    if (Wire.endTransmission () == 0)
-      {
-      Serial.print ("Found address: ");
-      delayMs(50);
-      Serial.print (i, DEC);
-      Serial.print (" (0x");
-      Serial.print (i, HEX);
-      Serial.println (")");
-      count++;
-      delayMs (1);  // maybe unneeded?
-      } // end of good response
-  } // end of for loop
-  Serial.println("Done.");
-  Serial.print("Found ");
-  Serial.print(count, DEC);
-  Serial.println(" device(s).");
-
-
   //turns on proximity sensor
   Wire.beginTransmission(SLA);
   Wire.write(SENSOR_CONFIGURATION);
@@ -98,15 +71,10 @@ int main () {
   delayMs(100);
 
 
-  delayMs(100);
-
   while (1)
   {
-    // Serial.println(application_state);
+    Serial.println(application_state);
     
-    data = readWithWire(SLA, SENSOR_DATA_REG);
-
-    Serial.println(data);
 
     switch (application_state)
     {
@@ -115,8 +83,17 @@ int main () {
       //write to screen the waiting state
       ////////////////////////////////////////
       //Idle animation
-      write_Image_Scroll_Up_Inf(idleImage, scroll_counter);
+
+      sensor_distance = readWithWire(SLA, SENSOR_DATA_REG);
+      
+      if (sensor_distance < BALL_MAX_CUTOFF_DISTANCE_VALUE && sensor_distance  > BALL_MIN_CUTOFF_DISTANCE_VALUE) {
+        application_state = activate_servo;
+      }
+
+      write_waveform_to_screen(scroll_counter);
       scroll_counter++;
+
+
       break;
     
     case activate_servo:
@@ -131,11 +108,7 @@ int main () {
       //write to screen the open state
       ////////////////////////////////////////
       //Open animation
-      write_Image_Scroll_Up_In(oImage, 40);
-      write_Image_Scroll_Up_In(pImage, 40);
-      write_Image_Scroll_Up_In(eImage, 40);
-      write_Image_Scroll_Up_In(nImage, 40);
-
+      write_OPEN_screen();
       application_state = wait_press;
       break;
 
@@ -150,6 +123,7 @@ int main () {
     
     case turn_on_relay:
       turnOnMotor();
+      delayMs(10);
       relay_state = 1;
 
       application_state = write_on_to_screen;
@@ -159,15 +133,15 @@ int main () {
       ////////////////////////////////////////
       //write to screen the on state
       //On animation
-      write_Image_Scroll_Up_In(oImage, 40);
-       write_Image_Scroll_Up_In(nImage, 35);    
       ////////////////////////////////////////
-
+      write_ON_to_screen();
       application_state = wait_press;
       break;
 
     case turn_off_relay:
       turnOffMotor();
+      delayMs(10);
+
       relay_state = 0;
 
       application_state = write_off_to_screen;
@@ -178,9 +152,7 @@ int main () {
       //write to screen the off state
       ////////////////////////////////////////
       // //Off animation
-      write_Image_Scroll_Up_In(oImage, 40);
-       write_Image_Scroll_Up_In(fImage, 40);
-      // write_Image_Scroll_Up_In(fImage, 40);
+      write_OFF_screen();
       application_state = wait_press;
       break;
     
@@ -188,17 +160,11 @@ int main () {
 
     delayMs(LOOP_DELAY_MS);
 
-    StopI2C_Trans();
   }
   
 }
 
-// ISR for PCINT0
-ISR(INT1_vect){
-  application_state = activate_servo;
-
-}
-
-ISR(INT0_vect){
+// ISR for relay
+ISR(INT5_vect){
   application_state = change_relay;
 }

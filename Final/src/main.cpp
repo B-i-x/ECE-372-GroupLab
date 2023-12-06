@@ -8,8 +8,9 @@
 #include "switch.h"
 #include "relay.h"
 #include "spi.h"
+#include "i2c.h"
 
-#define LOOP_DELAY_MS 50
+#define LOOP_DELAY_MS 100
 
 #define SLA 0x60
 #define SENSOR_DATA_REG 0x08
@@ -31,6 +32,8 @@ volatile stateType application_state = wait_press;
 volatile int relay_state = 0; //0 means that the relay is off, 1 means that the relay is on
 
 int scroll_counter = 0;
+
+int data;
 
 int main () {
   Serial.begin(9600);
@@ -63,11 +66,47 @@ int main () {
   uint64_t idleImage = 0x40403C02023C4040;
   uint64_t pImage = 0x00007E4848300000;
   uint64_t eImage = 0x00007E4A4A4A4200;
+  int count = 0;
+  Wire.begin();
+  for (byte i = 1; i < 120; i++)
+  {
+    Wire.beginTransmission (i);
+    if (Wire.endTransmission () == 0)
+      {
+      Serial.print ("Found address: ");
+      delayMs(50);
+      Serial.print (i, DEC);
+      Serial.print (" (0x");
+      Serial.print (i, HEX);
+      Serial.println (")");
+      count++;
+      delayMs (1);  // maybe unneeded?
+      } // end of good response
+  } // end of for loop
+  Serial.println("Done.");
+  Serial.print("Found ");
+  Serial.print(count, DEC);
+  Serial.println(" device(s).");
+
+
+  //turns on proximity sensor
+  Wire.beginTransmission(SLA);
+  Wire.write(SENSOR_CONFIGURATION);
+  Wire.write(0x00);
+  Wire.write(0x08);
+  Wire.endTransmission();
+  delayMs(100);
+
+
+  delayMs(100);
 
   while (1)
   {
-    Serial.println(application_state);
+    // Serial.println(application_state);
     
+    data = readWithWire(SLA, SENSOR_DATA_REG);
+
+    Serial.println(data);
 
     switch (application_state)
     {
@@ -148,6 +187,8 @@ int main () {
     }
 
     delayMs(LOOP_DELAY_MS);
+
+    StopI2C_Trans();
   }
   
 }

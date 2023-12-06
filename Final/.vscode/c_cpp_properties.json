@@ -10,13 +10,13 @@
             "includePath": [
                 "c:/Users/alexr/Documents/Fall 2023/ECE 372/ECE-372-Lab5/Final/include",
                 "c:/Users/alexr/Documents/Fall 2023/ECE 372/ECE-372-Lab5/Final/src",
+                "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                 "C:/Users/alexr/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "C:/Users/alexr/.platformio/packages/framework-arduino-avr/variants/mega",
                 "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                 "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
-                "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                 ""
             ],
             "browse": {
@@ -24,13 +24,13 @@
                 "path": [
                     "c:/Users/alexr/Documents/Fall 2023/ECE 372/ECE-372-Lab5/Final/include",
                     "c:/Users/alexr/Documents/Fall 2023/ECE 372/ECE-372-Lab5/Final/src",
+                    "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                     "C:/Users/alexr/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "C:/Users/alexr/.platformio/packages/framework-arduino-avr/variants/mega",
                     "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                     "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                     "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
                     "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/SoftwareSerial/src",
-                    "C:/Users/alexr/.platformio/packages/framework-arduino-avr/libraries/Wire/src",
                     ""
                 ]
             },

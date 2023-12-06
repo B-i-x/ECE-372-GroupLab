@@ -1,14 +1,14 @@
+#include "pwm.h"
+#include "timer.h"
+#include "switch.h"
+#include "relay_out.h"
+#include "spi.h"
+#include "i2c.h"
+
 #include <Arduino.h>
 #include <avr/io.h>
 #include <Wire.h>
 
-
-#include "pwm.h"
-#include "timer.h"
-#include "switch.h"
-#include "relay.h"
-#include "spi.h"
-#include "i2c.h"
 
 #define LOOP_DELAY_MS 10
 
@@ -37,19 +37,11 @@ int scroll_counter = 0;
 int sensor_distance;
 
 int main () {
-  Serial.begin(9600);
   sei();
 
+  Serial.begin(9600);
+
   initTimer0(); //milliseconds
-
-  initPWMTimer3(); //pwm 2
-  setServoAngle(0);
-
-  initRelaySwitch(); //servo out, digital pin 21
-
-  initPortB6(); //relay out digital pin 12
-  turnOffMotor();
-
 
   SPI_MASTER_Init(); // initialize SPI module and set the data rate
   // initialize 8 x 8 LED array (info from MAX7219 datasheet)
@@ -60,13 +52,24 @@ int main () {
   initializeDistanceSensorWithWire();
   delayMs(100);
 
+  
+  initPWMTimer3(); //pwm 2
+  setServoAngle(0);
 
-  while (1)
+  //dont know why but you have to put it here
+  initRelaySwitch();
+  initRelay(); //relay out, digital pin 12
+  turnOffMotor();
+
+
+  while (true)
   {
     // Serial.println(application_state);
+
     switch (application_state)
     {
     case wait_press:
+
       sensor_distance = readWithWire(SENSOR_DATA_REG);
       // Serial.println(sensor_distance);
       // delayMs(100);
@@ -92,6 +95,8 @@ int main () {
       break;
 
     case change_relay:
+      // Serial.println("change relay");
+      // delayMs(100);
       if (relay_state == 0) {
         application_state = turn_on_relay;
       }
@@ -104,6 +109,7 @@ int main () {
     case turn_on_relay:
       turnOnMotor();
       delayMs(10);
+
       relay_state = 1;
 
       application_state = write_on_to_screen;
@@ -112,14 +118,14 @@ int main () {
 
     case write_on_to_screen: 
       write_ON_to_screen();
+
       application_state = wait_press;
 
       break;
 
     case turn_off_relay:
       turnOffMotor();
-      delayMs(10);
-
+      
       relay_state = 0;
 
       application_state = write_off_to_screen;
@@ -127,6 +133,8 @@ int main () {
     
     case write_off_to_screen:
       write_OFF_screen();
+      delayMs(10);
+
       application_state = wait_press;
 
       break;
@@ -141,4 +149,5 @@ int main () {
 // ISR for relay
 ISR(INT5_vect){
   application_state = change_relay;
+
 }

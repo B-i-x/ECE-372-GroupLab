@@ -187,3 +187,11 @@ void write_OFF_screen() {
     write_Image_Scroll_Up_In(fImage, 40);
 }
 
+void initializeScreen() {
+    delayMs(1000);
+    write_execute(0x0A, 0x03);  // brightness control
+    write_execute(0x0B, 0x07); // scanning all rows and columns
+    write_execute(0x0C, 0x01); // set shutdown register to normal operation (0x01)
+    write_execute(0x0F, 0x00);
+}
+

@@ -15,9 +15,7 @@
 #define BALL_MAX_CUTOFF_DISTANCE_VALUE 200
 #define BALL_MIN_CUTOFF_DISTANCE_VALUE 11
 
-#define SLA 0x60
 #define SENSOR_DATA_REG 0x08
-#define SENSOR_CONFIGURATION 0x03
 
 typedef enum stateType_enum {
   wait_press, 
@@ -55,44 +53,29 @@ int main () {
 
   SPI_MASTER_Init(); // initialize SPI module and set the data rate
   // initialize 8 x 8 LED array (info from MAX7219 datasheet)
-  write_execute(0x0A, 0x03);  // brightness control
-  write_execute(0x0B, 0x07); // scanning all rows and columns
-  write_execute(0x0C, 0x01); // set shutdown register to normal operation (0x01)
-  write_execute(0x0F, 0x00);
-
+  initializeScreen();
+  delayMs(100);
 
   Wire.begin();
-  //turns on proximity sensor
-  Wire.beginTransmission(SLA);
-  Wire.write(SENSOR_CONFIGURATION);
-  Wire.write(0x00);
-  Wire.write(0x08);
-  Wire.endTransmission();
+  initializeDistanceSensorWithWire();
   delayMs(100);
 
 
   while (1)
   {
-    Serial.println(application_state);
-    
-
+    // Serial.println(application_state);
     switch (application_state)
     {
     case wait_press:
-      ////////////////////////////////////////
-      //write to screen the waiting state
-      ////////////////////////////////////////
-      //Idle animation
-
-      sensor_distance = readWithWire(SLA, SENSOR_DATA_REG);
-      
+      sensor_distance = readWithWire(SENSOR_DATA_REG);
+      // Serial.println(sensor_distance);
+      // delayMs(100);
       if (sensor_distance < BALL_MAX_CUTOFF_DISTANCE_VALUE && sensor_distance  > BALL_MIN_CUTOFF_DISTANCE_VALUE) {
         application_state = activate_servo;
       }
 
       write_waveform_to_screen(scroll_counter);
       scroll_counter++;
-
 
       break;
     
@@ -104,10 +87,6 @@ int main () {
       break;
 
     case write_open_to_screen:
-      ////////////////////////////////////////
-      //write to screen the open state
-      ////////////////////////////////////////
-      //Open animation
       write_OPEN_screen();
       application_state = wait_press;
       break;
@@ -119,6 +98,7 @@ int main () {
       else {
         application_state = turn_off_relay;
       }
+
       break;
     
     case turn_on_relay:
@@ -127,15 +107,13 @@ int main () {
       relay_state = 1;
 
       application_state = write_on_to_screen;
+
       break;
 
     case write_on_to_screen: 
-      ////////////////////////////////////////
-      //write to screen the on state
-      //On animation
-      ////////////////////////////////////////
       write_ON_to_screen();
       application_state = wait_press;
+
       break;
 
     case turn_off_relay:
@@ -148,14 +126,10 @@ int main () {
       break;
     
     case write_off_to_screen:
-      ////////////////////////////////////////
-      //write to screen the off state
-      ////////////////////////////////////////
-      // //Off animation
       write_OFF_screen();
       application_state = wait_press;
+
       break;
-    
     }
 
     delayMs(LOOP_DELAY_MS);

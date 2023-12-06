@@ -16,4 +16,6 @@ void write_ON_to_screen();
 void write_waveform_to_screen(int scroll_counter);
 void write_OPEN_screen();
 void write_OFF_screen();
+
+void initializeScreen();
 #endif

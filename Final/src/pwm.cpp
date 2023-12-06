@@ -67,12 +67,6 @@ void initPWMTimer3()  {
   OCR3A =  8000;
 }
 
-void changeDutyCycle(double dutycycle1){
-  OCR3A = int(dutycycle1 * (39999));
-}
-
-
-
 void setServoAngle(int angle) {
     // Check if the angle is within the valid range
     if (angle < 0 || angle > 180) {
@@ -114,26 +108,3 @@ void letBallThrough() {
   delayMs(50); 
 
 }
-// void analyzeADC() {
-
-//   while(! ((1 << 4) & ADCSRA)) {//waiting for ADC to be ready
-//   }
-
-//   unsigned int adcResult = ADCL; //getting adc result p1
-//   adcResult += ((unsigned int) ADCH) << 8;  //getting adc result p2
-
-//   double percentage = adcResult / 1024.0; //getting the adc percentage
-//   double dc1, dc2;
-
-//   if (percentage < 0.5) {
-//     dc1 = 0.0;
-//     dc2 = (percentage * 2.0);
-//   }
-//   else {
-//     dc1 = ((percentage - 0.5) * 2.0);
-//     dc2 = 1.0; //for some reason, putting this at 100 makes it go to 0
-//   }
-
-//   // changeDutyCycle(dc1, dc2);
-//   return;
-// }

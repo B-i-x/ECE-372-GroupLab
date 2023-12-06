@@ -3,7 +3,6 @@
 
 void initPWMTimer3();
 
-void changeDutyCycle(double dutycycle1);
 
 void letBallThrough();
 

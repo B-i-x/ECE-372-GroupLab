@@ -7,5 +7,11 @@ void StopI2C_Trans();
 void write(unsigned char data);
 void Read_from(unsigned char SLA, unsigned char MEMADDRESS);
 unsigned char Read_data();
-unsigned int readWithWire(unsigned char SLA, unsigned char internalAddress);
+unsigned int readWithWire(unsigned char SLA);
+
+void initializeDistanceSensorWithWire();
+
+// void initializeDistanceSensor();
+// unsigned int getDistanceFromSensor();
+
 #endif

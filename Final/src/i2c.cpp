@@ -5,6 +5,9 @@
 
 #define wait_for_completion while(!(TWCR & (1 << TWINT)));
 
+#define SLA_ADDRESS 0x60
+#define SENSOR_CONFIGURATION 0x03
+#define DISTANCE_REGISTER 0x08
 
 void initI2C() {
   
@@ -57,21 +60,50 @@ void Read_from(unsigned char SLA, unsigned char MEMADDRESS){
   TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO); // Stop condition
 // after this function is executed the TWDR register has the data from SLA that Master wants to read
 }
-  
+
 unsigned char Read_data() // Returns the last byte  from the data register
 {
-
   return TWDR;
 }
 
-unsigned int readWithWire(unsigned char SLA, unsigned char internalAddress){
+// void initializeDistanceSensor() {
+//   StartI2C_Trans(SLA_ADDRESS); //turns on proximity sensor
+  
+//   Read_from(SLA_ADDRESS, DISTANCE_REGISTER);
+//   write(SENSOR_CONFIGURATION);
+//   write(0x00);
+//   write(0x08);
+
+//   StopI2C_Trans();
+// }
+
+// unsigned int getDistanceFromSensor() {
+//   StartI2C_Trans(SLA_ADDRESS); //turns on proximity sensor
+
+//   Read_from(SLA_ADDRESS, DISTANCE_REGISTER);
+
+//   return Read_data();
+// }
+
+
+
+unsigned int readWithWire(unsigned char DISTANCE_ADDRESS){
     uint16_t tempData;
     //StartI2C_Trans(SLA);
-    Wire.beginTransmission(SLA);
-    Wire.write(internalAddress);
+    Wire.beginTransmission(SLA_ADDRESS);
+    Wire.write(DISTANCE_ADDRESS);
     Wire.endTransmission(false);
-    Wire.requestFrom(SLA, 2, true);
+    Wire.requestFrom(SLA_ADDRESS, 2, true);
     Wire.readBytes((uint8_t*)&tempData, 2);
     return tempData;
+}
+
+void initializeDistanceSensorWithWire() {
+  //turns on proximity sensor
+  Wire.beginTransmission(SLA_ADDRESS);
+  Wire.write(SENSOR_CONFIGURATION);
+  Wire.write(0x00);
+  Wire.write(0x08);
+  Wire.endTransmission();
 }
   
